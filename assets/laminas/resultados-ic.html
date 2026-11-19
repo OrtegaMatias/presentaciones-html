@@ -1,0 +1,14 @@
+<!-- RESULTADOS CON INCERTIDUMBRE · punto + intervalo, n y conjunto (CV/test) visibles. --lo/--v/--hi en % de la escala del eje. -->
+<section class="slide" id="s-resultados" data-titulo="Resultados con intervalo" data-ruta="Resultados" data-plantilla>
+  <div class="kicker">Resultados</div>
+  <h2>B supera a la regla actual aun en el peor caso de su intervalo</h2>
+  <p class="bajada">Recall en test (oct–dic, n = 2.000, 68 fallas) con intervalo de 95 %.</p>
+  <div class="cuerpo">
+    <div class="ic-eje"><span></span><div><span>0</span><span>0,25</span><span>0,50</span><span>0,75</span><span>1</span></div><span></span></div>
+    <div class="ic" data-paso="1"><span class="nombre">Regla actual</span><div class="pista" style="--lo:30%;--v:41%;--hi:52%;--c:var(--dim)"><i class="rango"></i><i class="punto"></i></div><span class="valor">0,41<small>0,30–0,52</small></span></div>
+    <div class="ic" data-paso="2"><span class="nombre">Modelo A</span><div class="pista" style="--lo:63%;--v:72%;--hi:80%"><i class="rango"></i><i class="punto"></i></div><span class="valor">0,72<small>0,63–0,80</small></span></div>
+    <div class="ic sel" data-paso="3"><span class="nombre">Modelo B</span><div class="pista" style="--lo:74%;--v:81%;--hi:87%"><i class="rango"></i><i class="punto"></i></div><span class="valor">0,81<small>0,74–0,87</small></span></div>
+  </div>
+  <footer class="pie"><span class="marca ilustrativo">Ilustrativo</span> A y B se solapan: B no es concluyentemente mejor que A.</footer>
+  <aside class="notas">Decir explícito qué intervalos se solapan y qué conclusión sí se puede sacar.</aside>
+</section>

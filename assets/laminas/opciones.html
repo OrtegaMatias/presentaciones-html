@@ -1,0 +1,29 @@
+<!-- COMPARACIÓN · 3 opciones por clic; al aparecer la elegida (data-foco) las otras se atenúan. Lenguaje llano en la tarjeta, término técnico en .tecnico. -->
+<section class="slide" id="s-opciones" data-titulo="Comparación de opciones" data-ruta="Método" data-plantilla>
+  <div class="kicker">Modelos</div>
+  <h2>El modelo elegido detecta 81 de cada 100 fallas con 48 h de aviso</h2>
+  <p class="bajada">Mismo test: oct–dic, 68 fallas.</p>
+  <div class="cuerpo">
+    <div class="grilla" style="--cols:3" data-foco="3">
+      <div class="card" data-paso="1">
+        <h3>Regla actual</h3><p>Torque sobre 60 Nm.</p>
+        <div class="fila mt-s" style="align-items:baseline;gap:12px"><span class="cifra-m" style="font-size:46px">41</span><span class="mute">de 100 fallas</span></div>
+        <div class="barra mt-s"><i style="--v:41%;--c:var(--dim)"></i></div>
+      </div>
+      <div class="card" data-paso="2">
+        <h3>Modelo A</h3><p>No ve el desgaste lento.</p>
+        <div class="fila mt-s" style="align-items:baseline;gap:12px"><span class="cifra-m" style="font-size:46px">72</span><span class="mute">de 100 fallas</span></div>
+        <div class="barra mt-s"><i style="--v:72%"></i></div>
+      </div>
+      <div class="card sel" data-paso="3">
+        <span class="sello">Elegido</span>
+        <h3>Modelo B</h3><p>Ve el desgaste lento.</p>
+        <div class="fila mt-s" style="align-items:baseline;gap:12px"><span class="cifra-m" style="font-size:46px;color:var(--accent)">81</span><span class="mute">de 100 fallas</span></div>
+        <div class="barra mt-s"><i style="--v:81%;--c:var(--accent)"></i></div>
+      </div>
+    </div>
+  </div>
+  <footer class="pie"><span class="marca ilustrativo">Ilustrativo</span> Elegido por validación cruzada.</footer>
+  <aside class="notas">[clic] la regla de hoy. [clic] modelo A. [clic] modelo B: lo recomendamos porque ve el desgaste lento.</aside>
+  <div class="tecnico"><h4>Nombres técnicos</h4><p>Regla: umbral de torque. A: Random Forest (recall 0,72). B: XGBoost (recall 0,81, precisión 0,63, umbral 0,35). Test n = 2.000.</p></div>
+</section>

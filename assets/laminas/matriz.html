@@ -1,0 +1,21 @@
+<!-- MATRIZ DE CONFUSIÓN · conteos con n, precisión y recall en lenguaje llano, costo de cada error. -->
+<section class="slide" id="s-matriz" data-titulo="Errores del modelo" data-ruta="Resultados" data-plantilla data-densa>
+  <div class="kicker">Errores</div>
+  <h2>Se escapan 13 fallas; a cambio, 32 revisiones innecesarias</h2>
+  <div class="cuerpo">
+    <div class="dos" style="--split:1.1fr .9fr">
+      <div class="matriz">
+        <span></span><span class="eje">Falla real</span><span class="eje">Sin falla</span>
+        <span class="eje">Alarma</span><div class="celda ok rise" style="--i:1"><b>55</b><span>fallas avisadas</span></div><div class="celda fp rise" style="--i:2"><b>32</b><span>revisiones de más</span></div>
+        <span class="eje">Sin alarma</span><div class="celda fn rise" style="--i:3"><b>13</b><span>fallas que se escapan</span></div><div class="celda rise" style="--i:4;--c:var(--line)"><b>1.900</b><span>sin novedad</span></div>
+      </div>
+      <div>
+        <div class="card kpi"><div class="cifra-m">81 <span style="font-size:.5em" class="mute">de 100</span></div><div class="lbl">fallas avisadas (recall)</div></div>
+        <div class="card kpi mt-s"><div class="cifra-m">63 <span style="font-size:.5em" class="mute">de 100</span></div><div class="lbl">alarmas correctas (precisión)</div></div>
+        <p class="mt-s mute">Revisión de más ≈ $0,2 M · falla que se escapa ≈ $3,1 M.</p>
+      </div>
+    </div>
+  </div>
+  <footer class="pie"><span class="marca ilustrativo">Ilustrativo</span> Test n = 2.000 · umbral 0,35 por costo mínimo.</footer>
+  <aside class="notas">El error caro es la falla que se escapa; por eso el umbral favorece avisar de más.</aside>
+</section>

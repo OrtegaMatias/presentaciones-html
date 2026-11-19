@@ -1,0 +1,33 @@
+<!-- DEMO DE CHAT · cada clic = un turno. Incluye confirmación humana explícita y un caso límite (aviso). Clase .ventana agrega botones tipo macOS. -->
+<section class="slide" id="s-chat" data-titulo="Demo: asistente" data-ruta="Demo" data-chat="CHAT_DEMO" data-plantilla>
+  <div class="dos" style="--split:.8fr 1.2fr">
+    <div>
+      <div class="kicker">Demo</div>
+      <h2>El jefe de turno pregunta; el asistente propone y la persona aprueba</h2>
+      <ol class="pasos mt-m">
+        <li><p>Consulta el estado de la máquina.</p></li>
+        <li><p>El asistente muestra el riesgo y su origen.</p></li>
+        <li><p>Nada se ejecuta sin confirmación; todo queda registrado.</p></li>
+      </ol>
+    </div>
+    <div class="chat" data-interactivo>
+      <div class="chat-top"><span class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 13h.01M15 13h.01"/></svg></span>Asistente de mantención<span class="estado">en línea</span></div>
+      <div class="chat-msgs"></div>
+    </div>
+  </div>
+  <aside class="notas">Cada clic avanza un turno; un clic durante la animación la completa. Plan B: captura en el anexo.</aside>
+</section>
+<script>
+(window.CHATS ??= {}).CHAT_DEMO = [
+  {role: "user", text: "¿Cómo están las fresadoras 3 y 5 para el turno noche?"},
+  {role: "agent", parts: [
+    {type: "tool", name: "riesgo_falla(F3, F5)", result: "F3: 0,78 · F5: sin datos"},
+    {type: "text", html: "<b>F3: riesgo alto (0,78).</b> El torque sube hace 4 días, igual que antes de la falla de marzo."},
+    {type: "aviso", html: "F5 no envía datos desde el lunes: no puedo estimar su riesgo. Sugiero revisión visual."}]},
+  {role: "user", text: "Genera la orden para F3 a las 21:00."},
+  {role: "agent", parts: [
+    {type: "confirmar", titulo: "Requiere tu aprobación", html: "Orden de trabajo: cambio de herramienta F3, hoy 21:00, mantención turno noche.", registro: "Queda registrada a tu nombre en la OT y en la bitácora del modelo."}]},
+  {role: "user", text: "Aprobado."},
+  {role: "agent", parts: [{type: "tool", name: "crear_ot", result: "OT-2291"}, {type: "text", html: "Listo: <b>OT-2291</b> creada. Repuesto disponible en bodega."}]}
+];
+</script>

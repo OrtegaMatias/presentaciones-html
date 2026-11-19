@@ -1,0 +1,19 @@
+<!-- DATOS Y PARTICIÓN · qué datos, cuántos, desbalance, cómo se dividió. EDITAR: n, % y criterios. -->
+<section class="slide" id="s-datos" data-titulo="Datos y partición" data-ruta="Datos" data-plantilla>
+  <div class="kicker">Datos</div>
+  <h2>10.000 registros, 3,4 % de fallas, separados por fecha</h2>
+  <div class="cuerpo">
+    <div class="particion rise" style="--i:1">
+      <div class="tr" style="--p:70">Entrenamiento · 7.000 · ene–ago</div>
+      <div class="va" style="--p:10">Valid. · 1.000</div>
+      <div class="te" style="--p:20">Test · 2.000 · oct–dic</div>
+    </div>
+    <div class="grilla mt-m" style="--cols:3">
+      <div class="card kpi rise" style="--i:2"><div class="cifra-m">3,4 %</div><div class="lbl">fallas (340 de 10.000)</div></div>
+      <div class="card kpi rise" style="--i:3"><div class="cifra-m">6</div><div class="lbl">variables de sensor</div></div>
+      <div class="card rise" style="--i:4"><span class="chip ok">Sin fuga</span><p class="mt-s">El test es posterior al entrenamiento.</p></div>
+    </div>
+  </div>
+  <footer class="pie"><span class="marca ilustrativo">Ilustrativo</span> Faltantes 0,8 % (mediana por máquina).</footer>
+  <aside class="notas">Contar por qué la división es temporal: en operación el modelo siempre predice el futuro.</aside>
+</section>

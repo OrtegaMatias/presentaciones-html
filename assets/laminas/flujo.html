@@ -1,0 +1,17 @@
+<!-- DIAGRAMA NARRADO · cada clic agrega un nodo y su flecha se dibuja al aparecer. EDITAR: textos; ids de <marker> únicos por lámina. -->
+<section class="slide" id="s-flujo" data-titulo="Cómo funciona" data-ruta="Método" data-plantilla>
+  <div class="kicker">Solución</div>
+  <h2>Del sensor a la orden de trabajo en tres pasos</h2>
+  <div class="cuerpo">
+    <svg viewBox="0 0 1390 300" style="width:100%;height:auto" role="img" aria-label="Sensores, modelo, jefe de turno">
+      <defs><marker id="s-flujo-punta" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+      <g text-anchor="middle" style="font-family:var(--f-titulo)">
+        <g data-paso="1"><rect x="20" y="70" width="300" height="160" rx="16" fill="var(--card)" stroke="var(--support)" stroke-width="2.5"/><text x="170" y="145" font-size="32" font-weight="700" fill="var(--text)">Sensores</text><text x="170" y="185" font-size="20" fill="var(--muted)" style="font-family:var(--f-texto)">torque, temperatura, rpm</text></g>
+        <g data-paso="2"><path class="dibujar" d="M330 150H520" fill="none" stroke="var(--dim)" stroke-width="3" marker-end="url(#s-flujo-punta)" style="color:var(--dim)"/><rect x="535" y="70" width="320" height="160" rx="16" fill="var(--card)" stroke="var(--ia)" stroke-width="2.5"/><text x="695" y="145" font-size="32" font-weight="700" fill="var(--text)">Modelo</text><text x="695" y="185" font-size="20" fill="var(--muted)" style="font-family:var(--f-texto)">riesgo de falla a 48 h</text></g>
+        <g data-paso="3"><path class="dibujar" d="M860 150H1050" fill="none" stroke="var(--dim)" stroke-width="3" marker-end="url(#s-flujo-punta)" style="color:var(--dim)"/><rect x="1065" y="70" width="305" height="160" rx="16" fill="var(--card)" stroke="var(--accent)" stroke-width="3"/><text x="1217" y="145" font-size="32" font-weight="700" fill="var(--text)">Jefe de turno</text><text x="1217" y="185" font-size="20" fill="var(--muted)" style="font-family:var(--f-texto)">decide y genera la OT</text></g>
+      </g>
+    </svg>
+  </div>
+  <footer class="pie">El modelo recomienda; la decisión de detener la máquina es siempre de una persona.</footer>
+  <aside class="notas">Recorrer de izquierda a derecha. Enfatizar que la decisión final es humana.</aside>
+</section>
