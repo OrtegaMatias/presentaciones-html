@@ -70,3 +70,7 @@ scripts/armar.py         ensambla, revisa y exporta
 ```
 
 Controles: `→`/`Espacio` avanza · `←` retrocede · `F` pantalla completa · `P` presentador · `N` notas · `O` vista general · `T` detalle técnico · `?` ayuda.
+
+## Licencia
+
+MIT. Ver [LICENSE](LICENSE).
