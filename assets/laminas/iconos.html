@@ -1,0 +1,18 @@
+<!-- ÍCONOS (referencia, no para exponer) · muestra el set base de motor/iconos.html con su nombre. Sirve para elegir.
+     Uso en HTML: <svg class="i"><use href="#i-servidor"/></svg> (tamaños .l 64 px, .xl 120 px; dentro de .ico, 38 px).
+     Uso en SVG: <use href="#i-servidor" x="…" y="…" width="40" height="40"/> dentro de un <g style="color:var(--support)">.
+     Un set coherente vale más que íconos sueltos de distintas fuentes: si falta uno, dibujarlo en 24×24 con trazo 1,8 y agregarlo. -->
+<section class="slide compacta" id="s-iconos" data-titulo="Set base de íconos" data-ruta="Referencia" data-plantilla>
+  <h2>Set base de íconos</h2>
+  <div class="cuerpo">
+    <div class="grilla iconos-ref" style="--cols:8;gap:18px 14px"></div>
+  </div>
+  <aside class="notas">Lámina de referencia para el muestrario: no va en una presentación.</aside>
+</section>
+<script>
+(window.ESCENAS ??= {})["s-iconos"] = (paso, s) => {
+  const g = s.querySelector(".iconos-ref"); if (g.childElementCount) return;
+  g.innerHTML = [...document.querySelectorAll('symbol[id^="i-"]')].map(y => `<div style="display:flex;align-items:center;gap:12px;font-size:18px;color:var(--muted)">`
+    + `<svg class="i" style="width:40px;height:40px;color:var(--text)"><use href="#${y.id}"/></svg>${y.id.slice(2)}</div>`).join("");
+};
+</script>

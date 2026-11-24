@@ -1,0 +1,66 @@
+<!-- ZOOM-OUT · de lo particular a lo general: la cámara se aleja con cada clic (una pieza → su máquina → la línea → la planta).
+     El mundo se dibuja a sangre detrás del texto (.fondo.velo). Requiere motor/iconos.html.
+     EDITAR: textos de cada nivel (.nivel, data-solo 0–3); MUNDO: columnas, filas, íconos por grupo, FOCO (grupo y posición
+     de «la pieza»); ENCUADRE (cuánto de la pantalla ocupa cada nivel y dónde se centra). Funciona en sangre, bruma o claro. -->
+<section class="slide sangre" id="s-zoom" data-titulo="El problema crece de una pieza a toda la planta" data-ruta="Problema" data-pasos="3" data-plantilla>
+  <div class="fondo velo"><svg class="zoom-svg" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Una pieza dentro de una máquina, dentro de una línea, dentro de la planta"></svg></div>
+  <div class="kicker">De lo particular a lo general</div>
+  <h2 style="max-width:8.5em">Empieza en una pieza y termina en toda la planta</h2>
+  <div class="cuerpo">
+    <div class="apilar nivel">
+      <div data-solo="0"><b>1</b><span>rodamiento gastado que nadie tenía registrado.</span></div>
+      <div data-solo="1"><b>4</b><span>componentes de la fresadora dependen de él.</span></div>
+      <div data-solo="2"><b>9</b><span>máquinas de la línea comparten repuestos y turnos.</span></div>
+      <div data-solo="3"><b>28</b><span>máquinas en la planta, sin un mapa común.</span></div>
+    </div>
+  </div>
+  <footer class="pie"><span class="marca ilustrativo">Ilustrativo</span> Planta de ejemplo.</footer>
+  <aside class="notas">Partimos muy cerca: una pieza. [clic] Nos alejamos: la máquina. [clic] La línea. [clic] La planta completa. Lo que era un detalle ahora es un problema de todos.</aside>
+</section>
+<script>
+(() => {
+  const COLS = 7, FILAS = 4, PASO = 240, TAM = 176, ICONO = 50;
+  const ICONOS = [["ajustes", "rayo", "reloj", "chip"], ["servidor", "base-datos", "app", "pc"], ["paquete", "documento", "usuario", "enlace"]];
+  const FOCO = {col: 3, fila: 1, pos: 0};                          // grupo y posición (0–3) de «la pieza»
+  const ENCUADRE = [{frac: .2, cx: .7}, {frac: .4, cx: .69}, {frac: .62, cx: .66}, {frac: .95, cx: .6}];   // ancho que ocupa y centro, por nivel
+  const NS = "http://www.w3.org/2000/svg", suave = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const quieto = () => matchMedia("(prefers-reduced-motion: reduce)").matches || document.body.classList.contains("imprimir");
+  function construir(svg) {
+    let x = 11; const rnd = () => (x = (x * 16807) % 2147483647) / 2147483647;
+    const centro = (c, f) => [c * PASO + PASO / 2, f * PASO + PASO / 2], off = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+    const nivelDe = (c, f) => c === FOCO.col && f === FOCO.fila ? 1 : Math.abs(c - FOCO.col) <= 1 && Math.abs(f - FOCO.fila) <= 1 ? 2 : 3;
+    let lazos = "", grupos = "";
+    for (let f = 0; f < FILAS; f++) for (let c = 0; c < COLS; c++) {
+      const [x0, y0] = centro(c, f), n = nivelDe(c, f);
+      [[c + 1, f, .6], [c, f + 1, .5], [c + 1, f + 1, .18]].forEach(([c2, f2, p]) => {
+        if (c2 < COLS && f2 < FILAS && rnd() < p) { const [x1, y1] = centro(c2, f2);
+          lazos += `<line class="lazo" vector-effect="non-scaling-stroke" x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" data-desde="${Math.max(2, n, nivelDe(c2, f2))}"/>`; } });
+      const set = ICONOS[(c + f) % ICONOS.length], esFoco = n === 1;
+      grupos += `<g><rect data-desde="${n}" class="marco-z${esFoco ? " foco-z" : ""}" vector-effect="non-scaling-stroke" x="${x0 - TAM / 2}" y="${y0 - TAM / 2}" width="${TAM}" height="${TAM}" rx="22"/>`
+        + `<path class="lazo" vector-effect="non-scaling-stroke" d="M${x0 - 44} ${y0 - 44}H${x0 + 44}V${y0 + 44}H${x0 - 44}" data-desde="${n}"/>`
+        + off.map(([dx, dy], k) => { const foco = esFoco && k === FOCO.pos, ix = x0 + dx * 44, iy = y0 + dy * 44;
+          return `<g ${foco ? 'style="color:var(--accent)" data-desde="0"' : `style="color:var(--muted)" data-desde="${n}"`}>`
+            + `<circle cx="${ix}" cy="${iy}" r="${ICONO * .62}" fill="var(--bg)" vector-effect="non-scaling-stroke" stroke="currentColor" stroke-width="${foco ? 3 : 1.5}"/>`
+            + `<use href="#i-${set[k]}" x="${ix - ICONO / 2 * .7}" y="${iy - ICONO / 2 * .7}" width="${ICONO * .7}" height="${ICONO * .7}"/></g>`; }).join("") + `</g>`;
+    }
+    svg.innerHTML = `<g>${lazos}</g>${grupos}`;
+    // cajas de cada nivel: [x, y, ancho] del viewBox (16:9)
+    const [fx, fy] = centro(FOCO.col, FOCO.fila), [px, py] = [fx + off[FOCO.pos][0] * 44, fy + off[FOCO.pos][1] * 44];
+    const regiones = [[px, py, ICONO * 1.3], [fx, fy, TAM], [fx, fy, PASO * 3], [COLS * PASO / 2, FILAS * PASO / 2, COLS * PASO]];
+    svg._cajas = regiones.map(([cx, cy, ancho], k) => { const w = ancho / ENCUADRE[k].frac; return [cx - ENCUADRE[k].cx * w, cy - w * 9 / 32, w]; });
+  }
+  function poner(svg, [x, y, w]) { svg._vb = [x, y, w]; svg.setAttribute("viewBox", `${x} ${y} ${w} ${w * 9 / 16}`); }
+  (window.ESCENAS ??= {})["s-zoom"] = (paso, s, {instantaneo}) => {
+    const svg = s.querySelector(".zoom-svg");
+    if (!svg._cajas) construir(svg);
+    svg.querySelectorAll("[data-desde]").forEach(e => e.style.opacity = paso >= +e.dataset.desde ? 1 : 0);
+    const meta = svg._cajas[paso], desde = svg._vb || meta;
+    cancelAnimationFrame(svg._raf);
+    if (instantaneo || quieto() || !svg._vb) return poner(svg, meta);
+    const t0 = performance.now(), dur = 1500, [x0, y0, w0] = desde, [x1, y1, w1] = meta;
+    const cuadro = t => { const k = suave(Math.min(1, (t - t0) / dur)), w = w0 * Math.pow(w1 / w0, k), u = w1 === w0 ? k : (w - w0) / (w1 - w0);
+      poner(svg, [x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, w]); if (k < 1) svg._raf = requestAnimationFrame(cuadro); };
+    svg._raf = requestAnimationFrame(cuadro);
+  };
+})();
+</script>

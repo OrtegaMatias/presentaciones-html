@@ -206,6 +206,10 @@ S.forEach((s, k) => {
   const msgs = $(".chat-msgs", s); if (msgs) { msgs.setAttribute("role", "log"); msgs.setAttribute("aria-live", "polite"); }
   if (s.dataset.chat && !CHATS[s.dataset.chat]) console.warn(`Lámina ${s.id}: data-chat="${s.dataset.chat}" no existe en CHATS`);
 });
+/* .letras: separa el texto en palabras y letras (--i) para que entren una a una; el lector de pantalla lee la frase entera */
+$$(".letras").forEach(e => { if (e.dataset.listo) return; const txt = e.textContent.trim(); let i = 0; e.dataset.listo = 1;
+  e.setAttribute("aria-label", txt); e.setAttribute("role", "text");
+  e.innerHTML = txt.split(/\s+/).map(w => `<span class="pal" aria-hidden="true">${[...w].map(c => `<span style="--i:${i++}">${esc(c)}</span>`).join("")}</span>`).join(" "); });
 $$(".dibujar").forEach(p => { try { p.style.setProperty("--l", Math.ceil(p.getTotalLength()) + 1); } catch (e) {} });
 
 /* ---------- Vista general (O) ---------- */

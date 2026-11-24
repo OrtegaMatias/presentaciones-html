@@ -20,6 +20,8 @@ const css = getComputedStyle(document.documentElement), tok = n => css.getProper
 10. Página larga con scroll (alternativa a slides)
 11. Póster / PDF vectorial
 12. Ilustraciones SVG generadas con Python (diagramas técnicos propios)
+13. Set base de íconos
+14. Componentes de concepto (sangre, display, texturas, revelación, grafo, zoom)
 
 ---
 
@@ -269,3 +271,32 @@ nuevo = re.sub(r"(<!--svg:(\w+)-->).*?(<!--/svg-->)",
 6. Tamaño real de un rótulo = `font-size × ancho mostrado / ancho del viewBox`. Un panel de 430 px con `viewBox` de 700 reduce 22 → 13,5 px: subir el `font-size` o ensanchar el panel hasta que el rótulo quede ≥ 18 px.
 7. Correrlo antes de armar con `armar.py … --pre "python3 svg_tema.py"`.
 
+
+## 13. Set base de íconos
+
+`assets/motor/iconos.html`: 40 íconos de trazo 24×24 (servidor, base-datos, nube, pc, app, celular, enlace, red, capas, alerta, escudo, candado, usuario, equipo, documento, lista, buscar, ajustes, rayo, corazon, pulso, salud, hospital, reloj, check, equis, flecha, etiqueta, ojo, destello, brujula, codigo, paquete, grafico, chat, chip, sincronizar, campana, llave). Se incluyen una vez al inicio de `<body>` con `<!--#incluir motor/iconos.html-->` (la plantilla ya lo hace) y toman el color del texto.
+
+```html
+<svg class="i"><use href="#i-servidor"/></svg>                  <!-- 1em; .l 64 px · .xl 120 px · dentro de .ico 38 px -->
+<g style="color:var(--support)"><use href="#i-servidor" x="10" y="10" width="40" height="40"/></g>   <!-- dentro de un SVG -->
+```
+
+Para verlos con su nombre: lámina `iconos` del muestrario. Si falta uno, dibujarlo con el mismo trazo (24×24, `stroke-width` 1,8, puntas redondas) como `<symbol id="i-…">` en un archivo de la presentación incluido después del set; no mezclar íconos de otras familias. `armar.py` da ERROR si un `href="#i-…"` no tiene su símbolo.
+
+## 14. Componentes de concepto
+
+Recetas y criterio en `concepto.md`; aquí, el inventario (todo en `deck.css`, con tokens).
+
+| Pieza | Uso |
+|---|---|
+| `.slide.sangre` · `.slide.bruma` | degradado oscuro del tema (texto claro) · degradado claro. Tokens `--sangre`, `--bruma` redefinibles en `estilo.css` |
+| `.fondo` (+ `.velo`, `.velo-abajo`) | capa a sangre detrás del contenido (ilustración, mapa, gráfico) |
+| `.textura` + `puntos/lineas/cruces/ondas/red` (+ `desvanece`, `desvanece-izq`) | patrón SVG enmascarado; color `--tx-c`, tamaño `--tx-tam` |
+| `.display` (`.xl/.m/.s`), `.contorno`, `.tenue`, `.lema` | tipografía grande como imagen; `--f-display`, `--display-peso` |
+| `.letras` · `.barrido` · `.crecer` | entradas letra a letra · de izquierda a derecha · desde más chico (con o sin `data-paso`) |
+| `.dibujar` + `--d`, `--dur` · `.emite` · `.flota` · `.cruza` (`--dx`) | trazos escalonados · onda que sale de un centro · vaivén · partícula que viaja |
+| `.finalistas(.solido)` > `.finalista` > `.arte` + `.txt .nombre` | opciones en tarjetas altas con arte (`--n` columnas, `--c` por tarjeta) |
+| `.grafo` (`.arista`, `.nodo`, `.raiz`, `.golpe`, `.onda`) | red que crece y pulso que se propaga; el script de `laminas/red.html` la construye desde `ANILLOS` o desde datos |
+| `.zoom-svg` (`.marco-z`, `.foco-z`, `.lazo`, `[data-desde]`) + `.nivel` | cámara que se aleja por niveles; script en `laminas/zoom.html` (anima el `viewBox` en escala logarítmica) |
+
+Red con datos reales: reemplazar la generación por anillos de `laminas/red.html` por `DATA.nodos` (`{anillo, x, y, icono, etiqueta}`) y `DATA.aristas` (`{a, b}`); el resto del script (saltos por BFS, cuentas, pulso) se mantiene.

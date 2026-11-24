@@ -1,0 +1,76 @@
+<!-- RED QUE CRECE · de un nodo a toda la red, un anillo por clic; el último clic propaga un pulso (una falla) por las conexiones.
+     Las cifras de la izquierda las calcula el script desde la red (no escribirlas a mano). Requiere motor/iconos.html.
+     EDITAR: ANILLOS (nodos por anillo: el anillo k aparece en el paso k), ICONOS (set base), ETIQUETAS (centro y anillo 1),
+     ORIGEN (índice del nodo donde nace el pulso; 0 = centro), SALTOS (hasta dónde llega), SEMILLA (otra forma de red), textos. -->
+<section class="slide" id="s-red" data-titulo="Una falla viaja por las dependencias" data-ruta="Problema" data-pasos="4" data-plantilla>
+  <div class="dos" style="--split:.7fr 1.5fr;gap:24px;flex:1;min-height:0">
+    <div>
+      <div class="kicker">Dependencias</div>
+      <h2>Una falla no se queda donde nace</h2>
+      <div class="apilar nivel mt-m">
+        <div data-solo="0"><b class="cuenta">1</b><span>fresadora se detiene.</span></div>
+        <div data-solo="1"><b class="cuenta">5</b><span>sistemas dependen de ella directamente.</span></div>
+        <div data-solo="2"><b class="cuenta">10</b><span>dependen de esos cinco.</span></div>
+        <div data-solo="3"><b class="cuenta">31</b><span>piezas conectadas en la planta.</span></div>
+        <div data-solo="4"><b class="cuenta" style="color:var(--bad)">16</b><span>quedan afectadas en dos saltos.</span></div>
+      </div>
+    </div>
+    <svg class="grafo" viewBox="0 0 1000 760" role="img" aria-label="Red de dependencias que crece desde una fresadora; una falla se propaga por las conexiones"></svg>
+  </div>
+  <footer class="pie"><span class="marca ilustrativo">Ilustrativo</span> Red de ejemplo; con datos reales, cargar NODOS y ARISTAS desde DATA.</footer>
+  <aside class="notas">Partimos por una sola máquina. [clic] Lo que depende de ella. [clic] Lo que depende de eso. [clic] La planta completa. [clic] Ahora falla la máquina: miren hasta dónde llega.</aside>
+</section>
+<script>
+(() => {
+  const ANILLOS = [1, 5, 10, 15], RADIO = [0, 150, 272, 392], R_NODO = [38, 29, 23, 19];
+  const ICONOS = ["servidor", "base-datos", "app", "pc", "nube", "documento", "usuario", "enlace"], ICONO_CENTRO = "ajustes";
+  const ETIQUETAS = ["Fresadora 3", "PLC", "MES", "Mantención", "Bodega", "Calidad"];
+  const ORIGEN = 0, SALTOS = 2, SEMILLA = 4, RETARDO = 480;     // ms entre saltos del pulso
+  const NS = "http://www.w3.org/2000/svg";
+  function construir(svg) {
+    let x = SEMILLA * 7919; const rnd = () => (x = (x * 16807) % 2147483647) / 2147483647;
+    const cx = 500, cy = 380, nodos = [], aristas = [];
+    ANILLOS.forEach((cant, k) => { const giro = rnd() * Math.PI * 2;
+      for (let i = 0; i < cant; i++) {
+        const ang = giro + i * 2 * Math.PI / cant + (k ? (rnd() - .5) * .3 : 0), r = RADIO[k] * (.93 + rnd() * .14);
+        nodos.push({anillo: k, ang, x: cx + Math.cos(ang) * r * 1.18, y: cy + Math.sin(ang) * r * .87});
+      } });
+    const dif = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+    nodos.forEach((n, i) => { if (!n.anillo) return;
+      const prev = nodos.map((m, j) => [m, j]).filter(([m]) => m.anillo === n.anillo - 1).sort((p, q) => dif(p[0].ang, n.ang) - dif(q[0].ang, n.ang));
+      aristas.push({a: prev[0][1], b: i});
+      if (prev[1] && n.anillo > 1 && rnd() < .4) aristas.push({a: prev[1][1], b: i}); });
+    const ext = nodos.map((n, i) => [n, i]).filter(([n]) => n.anillo === ANILLOS.length - 1).sort((p, q) => p[0].ang % 6.283 - q[0].ang % 6.283);
+    ext.forEach(([n, i], k) => { if (rnd() < .35) aristas.push({a: i, b: ext[(k + 1) % ext.length][1]}); });
+    // saltos desde el origen (BFS)
+    nodos.forEach(n => n.salto = Infinity); nodos[ORIGEN].salto = 0;
+    for (let cola = [ORIGEN]; cola.length;) { const u = cola.shift();
+      aristas.forEach(({a, b}) => { const v = a === u ? b : b === u ? a : -1; if (v >= 0 && nodos[v].salto === Infinity) { nodos[v].salto = nodos[u].salto + 1; cola.push(v); } }); }
+    svg.innerHTML = `<g class="aristas">${aristas.map(({a, b}) => `<line class="arista" pathLength="1" x1="${nodos[a].x}" y1="${nodos[a].y}" x2="${nodos[b].x}" y2="${nodos[b].y}"/>`).join("")}</g>`
+      + nodos.map((n, i) => { const r = R_NODO[n.anillo], t = r * 1.1, ico = i ? ICONOS[i % ICONOS.length] : ICONO_CENTRO, et = ETIQUETAS[i];
+        return `<g class="nodo${i === ORIGEN ? " raiz" : ""}" transform="translate(${n.x} ${n.y})"><g class="n-in"><circle class="onda" r="${r}"/><circle class="n-c" r="${r}"/>`
+          + `<use href="#i-${ico}" x="${-t / 2}" y="${-t / 2}" width="${t}" height="${t}"/></g>${et ? `<text y="${r + 26}" text-anchor="middle">${et}</text>` : ""}</g>`; }).join("");
+    [...svg.querySelectorAll(".arista")].forEach((el, k) => aristas[k].el = el);
+    [...svg.querySelectorAll(".nodo")].forEach((el, k) => { nodos[k].el = el; nodos[k].c = el.querySelector(".n-c"); nodos[k].o = el.querySelector(".onda"); });
+    return {nodos, aristas, afectados: nodos.filter(n => n.salto <= SALTOS).length};
+  }
+  (window.ESCENAS ??= {})["s-red"] = (paso, s, {instantaneo}) => {
+    const svg = s.querySelector(".grafo"), red = svg._red ??= construir(svg), {nodos, aristas} = red;
+    const visibles = Math.min(paso, ANILLOS.length - 1), golpe = paso >= ANILLOS.length;
+    nodos.forEach((n, i) => {
+      n.el.classList.toggle("on", n.anillo <= visibles);
+      n.el.querySelector(".n-in").style.transitionDelay = instantaneo ? "0s" : (n.anillo === visibles ? (i % 7) * 45 + "ms" : "0s");
+      const g = golpe && n.salto <= SALTOS, d = instantaneo || !g ? "0ms" : n.salto * RETARDO + "ms";
+      n.el.classList.toggle("golpe", g); n.el.style.transitionDelay = d; n.c.style.transitionDelay = d; n.o.style.animationDelay = d;
+    });
+    aristas.forEach(({a, b, el}) => {
+      el.classList.toggle("on", Math.max(nodos[a].anillo, nodos[b].anillo) <= visibles);
+      const g = golpe && Math.max(nodos[a].salto, nodos[b].salto) <= SALTOS && nodos[a].salto !== nodos[b].salto;
+      el.classList.toggle("golpe", g); el.style.transitionDelay = g && !instantaneo ? Math.min(nodos[a].salto, nodos[b].salto) * RETARDO + 200 + "ms" : "0ms";
+    });
+    const cuentas = [...ANILLOS.slice(0, -1), nodos.length, red.afectados], b = s.querySelectorAll(".cuenta");
+    b.forEach((e, k) => { if (k !== cuentas.length - 1) e.textContent = cuentas[k]; });
+    if (golpe) { const e = b[cuentas.length - 1]; if (instantaneo) { e._cur = red.afectados; e.textContent = red.afectados; } else contar(e, red.afectados, 0, "", "", 300); }
+  };
+})();
+</script>
