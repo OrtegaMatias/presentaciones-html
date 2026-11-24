@@ -3,13 +3,15 @@
 Skill para **Claude Code** que arma presentaciones HTML autocontenidas: decks para exponer en clase, defensas, comités, avances de proyecto y demos de agentes. Exporta a PDF, one-pager y PPTX.
 
 - **6 temas probados:** `industrial`, `clinico`, `editorial`, `papel`, `noche` y `envio`. Se cambian con `?tema=` en la URL.
-- **Biblioteca de 26 láminas, una por archivo:**
+- **Biblioteca de 31 láminas, una por archivo:**
   - portada, postura, cifra, ecuación, serie
   - datos y partición, opciones con foco, flujo
   - resultados con intervalo, matriz de confusión, chat simulado
   - estado, hitos, riesgos, gobernanza, decisión
   - marcos en tensión, citas, objeciones, escalamiento
   - limitaciones, veredicto, plenario, cierre
+  - concepto y marca: a sangre, revelación, finalistas, red que crece, zoom de lo particular a lo general
+- **Dos niveles de diseño** (`data-diseno="gestion|concepto"`): sobrio para avances y comités; para naming, marca o pitch, láminas a sangre, tipografía display, texturas, ilustración generada, set de íconos y un linter que avisa si el deck queda plano.
 - **Builds por clic** (`data-paso`, `data-solo`, `data-foco`), trazos SVG que se dibujan, contadores y escenas que avanzan con el relato.
 - **Ventana del presentador** (`P`) con:
   - notas

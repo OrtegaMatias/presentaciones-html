@@ -31,6 +31,12 @@ ERROR (no genera): tema desconocido, ids duplicados o faltantes, marcadores __AS
 aviso: sin notas, título genérico (h2 o data-titulo), exceso de palabras (rótulos SVG aparte),
   cifras sin .pie, [POR CONFIRMAR], colores hex fuera de tokens (salvo <svg data-material>), ESCENAS sin lámina, tema oscuro,
   reparto de tiempo desigual o sin margen, criterios de rúbrica sin lámina.
+
+Nivel de diseño: <html data-diseno="gestion|concepto"> (por defecto gestion).
+  gestion   sobrio: biblioteca, tablas y tarjetas; avisa tema oscuro y colores hex.
+  concepto  naming, marca, pitch, visión: no avisa tema oscuro, acepta colores propios dentro de <svg> y el doble de
+            rótulos SVG; en cambio avisa si la presentación queda plana (láminas solo de texto o tarjetas, sin cambio
+            de ritmo a sangre/oscuro, o tres láminas seguidas de tarjetas).
 """
 import argparse, base64, html as H, json, mimetypes, os, re, shutil, subprocess, sys, tempfile, urllib.request
 from html.parser import HTMLParser
@@ -43,7 +49,10 @@ GENERICOS = {"resultados", "los datos", "datos", "metodología", "metodologia", 
              "plenario", "anexo", "preguntas", "discusión", "discusion", "propuesta", "solución", "solucion"}
 GENERICOS_RE = re.compile(r"(tienen? respuesta|^(las |los )?preguntas( guía)?$|^qué (vamos|veremos)|^nuestra propuesta$)", re.I)
 MAX_PALABRAS = 60          # texto visible por lámina (sin notas, .tecnico ni rótulos SVG)
-MAX_SVG = 70               # palabras en rótulos <text> de SVG
+MAX_SVG = 70               # palabras en rótulos <text> de SVG (el doble con data-diseno="concepto")
+DISENOS = ("gestion", "concepto")
+FONDO_RITMO = {"sangre", "oscura", "lleno", "bruma"}         # láminas que cambian el fondo
+VISUAL_CLS = {"display", "fondo", "textura", "finalistas", "grafo", "zoom-svg"}
 CHROME = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "google-chrome", "chromium", "chromium-browser", "chrome"]
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 VACIOS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr", "path", "circle",
@@ -73,17 +82,23 @@ class Laminas(HTMLParser):
                                   f"(el navegador usa solo el primero) en {self.act['attrs'].get('id') if self.act else 'la fuente'}")
         if tag == "section" and "slide" in cls:
             self.act = {"attrs": a, "clases": cls, "h": "", "notas": "", "puente": "", "visible": [], "svg": [], "pie": False,
-                        "tabla": False, "cifras": False, "hex": 0}
+                        "tabla": False, "cifras": False, "hex": 0, "hex_svg": 0, "cards": 0, "solos": {}, "impacto": False,
+                        "visual": bool(FONDO_RITMO & set(cls)) or "data-pasos" in a}
             self.L.append(self.act); self.pila.append(("section", "slide")); return
         if self.act is not None:
             s = self.act
             if tag == "table": s["tabla"] = True
+            if "card" in cls: s["cards"] += 1
+            if VISUAL_CLS & set(cls) or {"letras", "sangre"} & set(cls): s["impacto"] = True
+            if tag in ("img", "canvas", "video") or VISUAL_CLS & set(cls) or \
+                    (tag == "svg" and "i" not in cls and not any(t == "svg" for t, _ in self.pila)): s["visual"] = True
             if "data-contar" in a or {"cifra", "cifra-m", "ic", "matriz"} & set(cls): s["cifras"] = True
             material = "data-material" in a or any(r == "material" for _, r in self.pila) or \
                 any(t in ("defs", "pattern", "marker", "lineargradient", "radialgradient") for t, _ in self.pila)
+            en_svg = tag == "svg" or any(t == "svg" for t, _ in self.pila)
             for n in ("fill", "stroke", "stop-color"):
-                if not material and HEX_RE.match(a.get(n) or ""): s["hex"] += 1
-            if HEX_RE.search(a.get("style") or ""): s["hex"] += 1
+                if not material and HEX_RE.match(a.get(n) or ""): s["hex_svg" if en_svg else "hex"] += 1
+            if not material and HEX_RE.search(a.get("style") or ""): s["hex_svg" if en_svg else "hex"] += 1
         if tag in VACIOS:
             return
         rol = None
@@ -94,6 +109,7 @@ class Laminas(HTMLParser):
             elif tag == "svg": rol = "material" if "data-material" in a else "svg"
             elif tag in ("h1", "h2") and not self.act["h"]: rol = "titulo"
             elif tag == "footer" and "pie" in cls: rol = "pie"
+            elif "data-solo" in a: rol = f"solo{len(self.act['solos'])}"; self.act["solos"][rol] = []   # se ve una capa a la vez
         self.pila.append((tag, rol))
 
     def handle_endtag(self, tag):
@@ -117,7 +133,8 @@ class Laminas(HTMLParser):
         else:
             if "titulo" in roles: self.act["h"] += d
             if "pie" in roles: self.act["pie"] = True
-            self.act["visible"].append(d)
+            solo = [r for _, r in self.pila if r and r.startswith("solo")]
+            (self.act["solos"][solo[-1]] if solo else self.act["visible"]).append(d)
 
 
 def fuentes_offline(familias: str) -> str:
@@ -297,7 +314,11 @@ def main():
     T = temas()
     tema = (re.search(r'<html[^>]*\bdata-tema="([^"]+)"', html) or [None, "industrial"])[1]
     if tema not in T: errores.append(f"tema «{tema}» no existe. Temas: {', '.join(T)}")
-    elif T[tema]["tipo"] == "oscuro": avisos.append(f"tema oscuro «{tema}»: solo para sala oscura o pantalla; con proyector y luz usar uno claro")
+    diseno = (re.search(r'<html[^>]*\bdata-diseno="([^"]+)"', html) or [None, "gestion"])[1]
+    if diseno not in DISENOS: errores.append(f"data-diseno «{diseno}» no existe: usar {' o '.join(DISENOS)}"); diseno = "gestion"
+    concepto = diseno == "concepto"
+    if tema in T and T[tema]["tipo"] == "oscuro" and not concepto:
+        avisos.append(f"tema oscuro «{tema}»: solo para sala oscura o pantalla; con proyector y luz usar uno claro")
 
     # 4. datos
     if a.datos:
@@ -337,6 +358,11 @@ def main():
         sin_editar = re.findall(r'<section[^>]*\bid="([^"]+)"[^>]*data-plantilla', sin_code)
         detalle = f" — tomadas de la biblioteca porque no existen junto a la fuente: {', '.join(de_biblioteca)}" if de_biblioteca else ""
         errores.append(f"lámina(s) de biblioteca sin editar (quitar data-plantilla al adaptarlas): {', '.join(sin_editar) or '?'}{detalle}")
+    simbolos = set(re.findall(r'<symbol\b[^>]*\bid="(i-[\w-]+)"', sin_code))
+    faltan = sorted(set(re.findall(r'href="#(i-[\w-]+)"', sin_code)) - simbolos)
+    if faltan:
+        errores.append(f"íconos sin definir: {', '.join(faltan)} — " + ("revisar el nombre (lista en motor/iconos.html)" if simbolos
+                       else "incluir el set con <!--#incluir motor/iconos.html--> al inicio de <body>"))
     if re.search(r'font-family="(?!var)', sin_code): avisos.append('SVG con font-family fijo: usar style="font-family:var(--f-titulo)"')
 
     p = Laminas(); p.feed(sin_com); L = p.L
@@ -344,7 +370,8 @@ def main():
     if not L: errores.append('no se encontraron <section class="slide">')
     for k, s in enumerate(L, 1):
         at = s["attrs"]; tag = f"lámina {k} ({at.get('id') or 'sin id'})"
-        palabras = len(" ".join(s["visible"]).split()); svg = len(" ".join(s["svg"]).split())
+        palabras = len(" ".join(s["visible"]).split()) + max([len(" ".join(v).split()) for v in s["solos"].values()] or [0])
+        svg = len(" ".join(s["svg"]).split())
         h = " ".join(s["h"].split()); dt = at.get("data-titulo", "")
         if not at.get("id"): errores.append(f"{tag}: sin id (el guion, #s-id y el presentador lo necesitan)")
         if not dt: avisos.append(f"{tag}: sin data-titulo")
@@ -354,10 +381,30 @@ def main():
                 avisos.append(f"{tag}: título genérico «{t}» → escribir la afirmación"); break
         tope = MAX_PALABRAS * 2 if (s["tabla"] or "compacta" in s["clases"]) else int(MAX_PALABRAS * 1.5) if "data-densa" in at else MAX_PALABRAS
         if palabras > tope: avisos.append(f"{tag}: {palabras} palabras visibles (> {tope}); mover detalle a notas o .tecnico")
-        if svg > MAX_SVG: avisos.append(f"{tag}: {svg} palabras en rótulos SVG (> {MAX_SVG}); el diagrama se vuelve ilegible proyectado")
+        tope_svg = MAX_SVG * 2 if concepto else MAX_SVG
+        if svg > tope_svg: avisos.append(f"{tag}: {svg} palabras en rótulos SVG (> {tope_svg}); el diagrama se vuelve ilegible proyectado")
         if s["cifras"] and not s["pie"] and not {"lleno", "oscura"} & set(s["clases"]):
             avisos.append(f"{tag}: muestra cifras sin .pie con su fuente")
-        if s["hex"]: avisos.append(f"{tag}: {s['hex']} color(es) hex (fill/stroke/style); usar tokens var(--…) o marcar la ilustración con <svg data-material>")
+        nhex = s["hex"] + (0 if concepto else s["hex_svg"])
+        if nhex: avisos.append(f"{tag}: {nhex} color(es) hex (fill/stroke/style); usar tokens var(--…), definir la paleta propia en estilo.css "
+                               f"o marcar la ilustración con <svg data-material>")
+    if concepto and L:
+        planas = [s["attrs"].get("id", "?") for s in L if not s["visual"] and "data-anexo" not in s["attrs"]]
+        cuerpo_n = sum(1 for s in L if "data-anexo" not in s["attrs"])
+        if len(planas) * 2 > cuerpo_n:
+            avisos.append(f"diseño concepto: {len(planas)} de {cuerpo_n} láminas son solo texto o tarjetas ({', '.join(planas[:6])}"
+                          f"{'…' if len(planas) > 6 else ''}); cada lámina de concepto necesita algo que se vea: ilustración, fondo a sangre, "
+                          f"tipografía display o un gráfico que se arma (references/concepto.md)")
+        if not any(s["impacto"] or "sangre" in s["clases"] for s in L):
+            avisos.append("diseño concepto: ninguna lámina tiene un elemento de alto impacto (tipografía .display, lámina sangre, "
+                          ".fondo a sangre, finalistas, grafo o zoom); falta el momento que la audiencia va a recordar")
+        if not any(FONDO_RITMO & set(s["clases"]) for s in L):
+            avisos.append("diseño concepto: ninguna lámina cambia el fondo (sangre, bruma, oscura o lleno); sin cambio de ritmo el deck se ve plano")
+        racha = []
+        for s in L + [None]:
+            if s and s["cards"] >= 2 and not s["visual"]: racha.append(s["attrs"].get("id", "?")); continue
+            if len(racha) >= 3: avisos.append(f"diseño concepto: {len(racha)} láminas seguidas de tarjetas ({', '.join(racha)}); romper con una ilustración o una lámina a sangre")
+            racha = []
     escenas = set(re.findall(r'ESCENAS[^\[]*\[\s*["\']([^"\']+)["\']\s*\]', scripts))
     idsl = {s["attrs"].get("id") for s in L}
     for e in escenas - idsl: avisos.append(f'ESCENAS["{e}"] no corresponde a ninguna lámina (¿id renombrado?)')
@@ -383,7 +430,7 @@ def main():
     if errores: sys.exit(1)
 
     salida.write_text(html, encoding="utf-8")
-    print(f"ok  {salida}  ·  tema {tema}  ·  {len(L)} láminas ({resumen_n} en resumen)  ·  {n_img} imágenes  ·  {salida.stat().st_size / 1024:.0f} KB")
+    print(f"ok  {salida}  ·  tema {tema}  ·  diseño {diseno}  ·  {len(L)} láminas ({resumen_n} en resumen)  ·  {n_img} imágenes  ·  {salida.stat().st_size / 1024:.0f} KB")
 
     fam = T[tema]["fuentes"]
     pdf = Path(a.pdf).resolve() if a.pdf else None

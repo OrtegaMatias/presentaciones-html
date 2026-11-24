@@ -3,7 +3,7 @@
 ## Reglas de contenido (todas las audiencias)
 
 - **Título-afirmación** en toda lámina de resultado: la conclusión, no el tema («Resultados» ✗ → «El modelo elegido detecta 81 de cada 100 fallas» ✓). Las explicativas pueden usar pregunta. Si el dato es correlacional, el título también: «suben *junto con*», no «suben *porque*».
-- **Una idea por lámina**, ~40–60 palabras visibles. Lo demás va en `<aside class="notas">` (lo que se dice) o `.tecnico` (respaldo, tecla T). Tablas de gestión pueden llegar a ~100 con `data-densa`.
+- **Una idea por lámina**, ~40–60 palabras visibles (15–40 en presentaciones de concepto). Lo demás va en `<aside class="notas">` (lo que se dice) o `.tecnico` (respaldo, tecla T). Tablas de gestión pueden llegar a ~100 con `data-densa`.
 - **Cifras con origen**: cada cifra en pantalla tiene fuente en `.pie` y marca `.marca real` o `.marca ilustrativo`. Dato faltante → `[POR CONFIRMAR]` visible, nunca inventado. Cifras de un análisis llegan por `datos.json`.
 - **Decisiones metodológicas no obvias en la lámina** (pie o nota corta), no solo en las notas: un profesor preguntó por qué se entrenó con 7.000 filas porque no estaba a la vista.
 - **Honestidad**: lámina de limitaciones; lo propuesto separado de lo hecho; «la decisión es de una persona» cuando hay IA.
@@ -20,6 +20,7 @@ Elegir uno en el paso 2; define tema por defecto, láminas obligatorias y regist
 | **Comité / directorio / salud** | `editorial` o `clinico` | portada-corporativa (confidencialidad, versión), agenda, decision, gobernanza, riesgos | Sobrio. Gobernanza antes de que la pregunten. Demo con confirmación humana y un caso límite |
 | **Avance de proyecto** (equipo, PMO, cliente recurrente) | `clinico` o `industrial` | estado (semáforo), hitos con «hoy», riesgos con dueño, próximos pasos/decisiones pendientes | Empezar por lo rojo y qué se necesita de quién. Una lámina por archivo |
 | **Demo técnica** | `noche` o `envio` (sala oscura) | portada, flujo, chat o demo en vivo, limitaciones | Ritmo rápido, builds cortos; plan B en notas |
+| **Concepto / naming / marca / pitch** (`data-diseno="concepto"`) | el del área (p. ej. `clinico`) con láminas `sangre` y `bruma`; propio en `estilo.css` si hay marca | `sangre` (gancho), `zoom` o `red` (el problema), `finalistas`, `revelacion` por opción, elección | Pocas palabras y grandes; una imagen por lámina; un momento memorable. Leer `concepto.md` |
 | **Caso ético / defensa de postura / debate** | `industrial` o `papel` | portada-pregunta, `postura` (primer minuto), cifras del enunciado, actores (quién decide vs. quién se expone), `opciones` (3–5 alternativas con foco), `marcos` (tensión entre marcos, no unanimidad), `citas` (códigos con artículo), `objeciones` en el cuerpo, plan con costos y `escalamiento`, respuesta literal a cada pregunta guía, `veredicto`, `plenario` | La decisión va primero, no al final. Solo las cifras del enunciado; el resto «por medir». Reconocer el costo de la propia postura (*steelman*) antes de que lo pregunten |
 
 ## Rigor para resultados (ML y análisis cuantitativo)
@@ -68,6 +69,10 @@ Pregunta/gancho → problema en una cifra → datos y alcance → método → re
 | VS / antes-después | `.dos` con dos cifras; `data-solo` dentro de `.apilar` |
 | Caos → orden | dos láminas `flujo` con el mismo lenguaje visual |
 | Dolores tachados | lista con `.tachado` que da paso a la solución |
+| Manifiesto o portada a sangre | `sangre` (display + textura) |
+| De lo particular a lo general | `zoom` (`ESCENAS` anima el `viewBox`) |
+| Red que crece · impacto que se propaga | `red` (`ESCENAS`, pulso por saltos) |
+| Opciones de nombre o concepto | `finalistas` + una `revelacion` por opción |
 
 ## Guion (`GUION.md`, lo genera `armar.py --guion`)
 
